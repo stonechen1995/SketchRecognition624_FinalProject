@@ -1,3 +1,7 @@
+# Only for Stone
+new_images/
+archive/
+
 #OS
 .DS_Store
 
