@@ -32,33 +32,47 @@ def extractContours(contours):
     return np.asfortranarray([x, y])
 
 
-def generateBezierCurve(nodes, numSegments=1, filename=None, toPlot=False):
+def extractPoints(nodes, degree=3):
+    xnew = [nodes[0][0]]
+    ynew = [nodes[1][0]]
+
+    for i in range(degree):
+        xInd = int((len(nodes[0])/degree)*(i+1))
+        yInd = int((len(nodes[1])/degree)*(i+1))
+        # print(f"xInd = {xInd}")
+        # print(f"yInd = {yInd}")
+        xnew.append(nodes[0][xInd-1])
+        ynew.append(nodes[1][yInd-1])
+
+    return np.asfortranarray([xnew, ynew])
+
+def generateBezierCurve(fileName, nodes, numSegments=1, filename=None, degree=3, toPlot=False):
     if numSegments < 1:
         print("wrong numSegments argument")
         return
-        
+    
     intervalNodes = int(len(nodes[0]) / (numSegments)) + 1
-    j = 1
+    j = 0
     for i in range(0, len(nodes[0]), intervalNodes):
         # print(f"i = {i}")
-        x_new = nodes[0]
-        y_new = nodes[1]
+        x_new = nodes[0].tolist()
+        y_new = nodes[1].tolist()
         x_segment = nodes[0][i:i+intervalNodes]
         y_segment = nodes[1][i:i+intervalNodes]
-        nodes_segment = np.asfortranarray([x_segment, y_segment])
-        curve = bezier.Curve(nodes_segment, degree=len(nodes_segment[0])-1)
-        x_new[i:i+intervalNodes] = curve.nodes[0]
-        y_new[i:i+intervalNodes] = curve.nodes[1]
-        pathname = './new_images/' + filename + '-{0:03}'.format(j) + ".csv"
-        pd.DataFrame([x_new, y_new]).to_csv(pathname)
+        nodes_segment = extractPoints([x_segment, y_segment], degree)
+        curve = bezier.Curve(nodes_segment, degree=degree)
+        x_new[i:i+intervalNodes] = curve.nodes[0].tolist()
+        y_new[i:i+intervalNodes] = curve.nodes[1].tolist()
+        # pathname = './new_images/' + filename + '-{0:03}'.format(j) + ".csv"
+        # pd.DataFrame([x_new, y_new]).to_csv(pathname)
         j = j + 1
 
         if toPlot: 
             # plotImg(old_nodes=nodes, new_curve=curve, new_nodes=[x_new, y_new], startpoint=i, endpoint=i+intervalNodes)
-            plotImg(old_nodes=nodes, new_curve=curve)
+            plotImg(originalName=fileName, index=j, old_nodes=nodes, new_curve=curve)
 
 
-def plotImg(old_nodes=None,  new_curve=None, new_nodes=None, startpoint=0, endpoint=0): # plot images
+def plotImg(originalName, index, old_nodes=None,  new_curve=None, new_nodes=None, startpoint=0, endpoint=0): # plot images
     axs = plt.gca()
     axs.axis('equal')
     if old_nodes.all() != None: 
@@ -69,4 +83,7 @@ def plotImg(old_nodes=None,  new_curve=None, new_nodes=None, startpoint=0, endpo
         plt.plot(new_nodes[0][endpoint:len(new_nodes[0])], new_nodes[1][endpoint:len(new_nodes[0])], '-b') # unchanged segment in new image
     if new_curve != None: 
         new_curve.plot(len(new_curve.nodes[0]), ax=axs) # new segment in new image (option 2)
-    plt.show()
+    axs.invert_yaxis()
+    pathname = './new_images/'
+    plt.savefig(pathname + originalName + '-{0:03}'.format(index) + '.png')
+    # plt.show()

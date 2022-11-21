@@ -2,20 +2,30 @@ from package import thin_demo
 from package import extractContours
 from package import generateBezierCurve
 import cv2 as cv
+import random
 import os
+import shutil
 
-# create a folder for outputs.
+
+# delete create a folder for outputs.
 try:
-    os.mkdir(os.path.join(os.getcwd(), "new_images"))
-except FileExistsError as error: print("new_images/ folder exist")
+    shutil.rmtree(os.path.join(os.getcwd(), "new_images"))
+except FileNotFoundError as error: print("new_images/ folder doesn't exist")
+os.mkdir(os.path.join(os.getcwd(), "new_images"))
 
+selected = set()
+for i in range(5):
+   selected.add('{0:03}'.format(random.randint(1,55)))
 
 path = 'archive/Img/'
 for filename in os.listdir(path):
     name, extension = filename.split(".")
+    category, index = name.split("-")
+    if index not in selected: continue
     extension = "." + extension
+    print(name)
     img = cv.imread(path + name + extension)
     contours = thin_demo(img)
     nodes = extractContours(contours)
-    generateBezierCurve(nodes, numSegments=8, filename=name, toPlot=False)
-    
+    generateBezierCurve(name, nodes, numSegments=8, filename=name, degree=3, toPlot=True)
+    # break
