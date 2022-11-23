@@ -7,7 +7,7 @@ import os
 import shutil
 
 
-# delete create a folder for outputs.
+# delete and create a folder for outputs.
 try:
     shutil.rmtree(os.path.join(os.getcwd(), "new_images"))
 except FileNotFoundError as error: print("new_images/ folder doesn't exist")

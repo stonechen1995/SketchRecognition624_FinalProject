@@ -56,16 +56,20 @@ def generateBezierCurve(fileName, nodes, numSegments=1, filename=None, degree=3,
     if toPlot: plotImg(originalName=fileName, index=j, old_nodes=nodes)
     for i in range(0, len(nodes[0]), intervalNodes):
         print(f"\n\ni={i}")
+        print(f"j={j}")
         x_new = nodes[0].tolist()
         y_new = nodes[1].tolist()
-        print(f"x_new = {x_new}")
+        print(f"len(x_new) = {len(x_new)}")
         x_segment = x_new[i:i+intervalNodes]
         y_segment = y_new[i:i+intervalNodes]
-        print(f"len(x_segment) = {len(x_segment)}")
+        print(f"x_segment={x_segment}")
         controlPoints_of_segment = extractControlPoints([x_segment, y_segment], degree)
-        print(f"len(controlPoint) = {len(controlPoints_of_segment[0])}")
         curve = bezier.Curve(controlPoints_of_segment, degree=degree)
+        print(f"controlPoint = {controlPoints_of_segment[0]}")
         print(f"curve = {curve.nodes[0]}")
+        print(f"controlPoint = {controlPoints_of_segment[1]}")
+        print(f"curve = {curve.nodes[1]}")
+
         x_new[i:i+intervalNodes] = curve.nodes[0].tolist()
         y_new[i:i+intervalNodes] = curve.nodes[1].tolist()
         print(f"len(x_new) = {len(x_new)}")
@@ -90,12 +94,14 @@ def plotImg(originalName, index, old_nodes=[0], new_curve=None, new_nodes=None, 
         plt.plot(old_nodes[0], old_nodes[1], '-y') # original image
     if new_nodes != None: 
         if startpoint == -1 or endpoint == -1: 
+            print("startpoint == -1 or endpoint == -1")
             plt.plot(new_nodes[0], new_nodes[1], '-b')
         else: 
+            print("startpoint != -1 and endpoint != -1")
             print(f"startpoint={startpoint}; endpoint={endpoint}")
-            plt.plot(new_nodes[0][0:startpoint], new_nodes[1][0:startpoint], '-r') # unchanged segment in new image
+            # plt.plot(new_nodes[0][0:startpoint], new_nodes[1][0:startpoint], '-r') # unchanged segment in new image
             plt.plot(new_nodes[0][endpoint:len(new_nodes[0])], new_nodes[1][endpoint:len(new_nodes[0])], '-r') # unchanged segment in new image
-            plt.plot(new_nodes[0][startpoint:endpoint], new_nodes[1][startpoint:endpoint], '--y') # new segment in new image (option 1)
+            # plt.plot(new_nodes[0][startpoint:endpoint], new_nodes[1][startpoint:endpoint], '--y') # new segment in new image (option 1)
     if new_curve != None: 
         # new_curve.plot(len(new_curve.nodes[0]), ax=axs) # new segment in new image (option 2, different from option 1 and option 3)
         plt.plot(new_curve.nodes[0], new_curve.nodes[1], '--b') #option 3
