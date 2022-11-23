@@ -24,11 +24,12 @@ for filename in os.listdir(path):
     if index not in selected: continue
     extension = "." + extension
     ##############
-    name = 'img058-047'
+    name = 'img011-047'
     ##############
     print(name)
     img = cv.imread(path + name + extension)
     contours = thin_demo(img)
+    print(contours)
     nodes = extractContours(contours)
     generateBezierCurve(name, nodes, numSegments=8, filename=name, degree=3, toPlot=True)
     break
