@@ -29,17 +29,19 @@ for filename in os.listdir(path):
     category, index = name.split("-")
     extension = "." + extension
     ##############
-    name = 'img006-042'
+    name = 'img009-033'
     ##############
     print(name)
     img = cv.imread(path + name + extension)
-    # cv.resize(img, [300,400])
     row = img.shape[0]
     skel = thin_demo(img)
+    plt.figure(100)
+    plt.imshow(skel)
+
         
     ############ parameters to be changed ############
     degreeOfShifting = math.floor(row/256) * 1 # to be modified
-    patchResolution = int(row / 256 * 16) # to be modified
+    patchResolution = int(row / 256 * 4) # to be modified
     numOfDeform = 3 # to be modified
     ############ parameters to be changed ############
 
@@ -58,27 +60,51 @@ for filename in os.listdir(path):
             # for each patch
             patch = skel[i * patchResolution : (i+1) * patchResolution, j * patchResolution : (j+1) * patchResolution]
             if patch.any() == True:
-                # print('patch.any() == True')
+                # plt.subplot(111)
+                # plt.imshow(patch)
+                # plt.show()
                 pointsInPatch = convertBinaryToPoints(patch)
-                # print("*******************************************")
-                # print(pointsInPatch.shape)
+
                 # 4 control points from the original segment
                 if pointsInPatch.shape[1] > 4:
                     controlPoints_of_segment = extractControlPoints(pointsInPatch, degree=3) 
                 curve = bezier.Curve(controlPoints_of_segment, degree=3)
                 # 4 Beziered points from the original segment
                 list_deformedPoints = randomDeform(curve.nodes, numOfDeform, degreeOfShifting)
-                # [[[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]], ....]
                 ind = 1
                 for point in list_deformedPoints:
                     x = point[0] + i * patchResolution
                     y = point[1] + j * patchResolution
+
                     axs = plt.gca()
                     axs.axis("equal")
                     plt.figure(ind)
-                    # x_curve, y_curve = smoothing_base_bezier(x, y, k=0.3, closed=False)
-                    # plt.plot(y_curve, -x_curve, label='$k=0.3$')
-                    plt.plot(y, -x, 'ro')
+                    x_curve, y_curve = smoothing_base_bezier(x, y, k=0.6, closed=False)
+
+
+
+                    # gridx = np.array(list(range(i * patchResolution, (i+1) * patchResolution)))
+                    # gridy = np.array([j * patchResolution] * patchResolution)
+                    # plt.plot(gridy, -gridx)
+
+                    # gridx = np.array(list(range(i * patchResolution, (i+1) * patchResolution)))
+                    # gridy = np.array([(j+1) * patchResolution] * patchResolution)
+                    # plt.plot(gridy, -gridx)
+
+                    # gridx = np.array([i * patchResolution] * patchResolution)
+                    # gridy = np.array(list(range(j * patchResolution, (j+1) * patchResolution)))
+                    # plt.plot(gridy, -gridx)
+
+                    # gridx = np.array([(i+1) * patchResolution] * patchResolution)
+                    # gridy = np.array(list(range(j * patchResolution, (j+1) * patchResolution)))
+                    # plt.plot(gridy, -gridx)
+
+
+
+
+
+                    plt.plot(y_curve, -x_curve, label='$k=0.3$')
+                    # plt.plot(y, -x, 'ro')
                     plt.savefig(pathname + name + '-{0:03}'.format(ind) + '.png')
                     ind += 1
 

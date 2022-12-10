@@ -33,23 +33,106 @@ def extractContours(contours):
 # extract points in the region of max area in the binary image into np.array
 def convertBinaryToPoints(binaryMatrix):
     connectedRegionMatrix, numOfConnectedRegions = bwlabel(binaryMatrix)
+
     List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
-    # print(f"List_AreaOfConnectedRegions = {List_AreaOfConnectedRegions}")
     index_maxAreaOfRegions = max(range(len(List_AreaOfConnectedRegions)), key=List_AreaOfConnectedRegions.__getitem__)
     maxArea = List_AreaOfConnectedRegions[index_maxAreaOfRegions]
+    p0 = None
+    connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[0]+2))
+    connectedRegionMatrixWithZeros[1:binaryMatrix.shape[0]+1, 1:binaryMatrix.shape[0]+1] = connectedRegionMatrix
     x = []
     y = []
     if maxArea > 4: # "4" as a threshold
-        # print("maxArea > 4")
+        shouldBreak = False
         for i in range(0, binaryMatrix.shape[0]):
             for j in range(0, binaryMatrix.shape[0]):
                 if connectedRegionMatrix[i, j] == index_maxAreaOfRegions: 
-                    # print("connectedRegionMatrix[i, j] == index_maxAreaOfRegions")
-                    x.append(i)
-                    y.append(j)
+                    if isEndPoint(connectedRegionMatrixWithZeros[i:i+3, j:j+3]):
+                        if p0 == None:
+                            p0 = [i, j]
+                            connectedRegionMatrixWithZeros[i, j] = 0
+                            points = findPoints(p0, connectedRegionMatrixWithZeros)
+                            shouldBreak = True
+                            break
+            if shouldBreak: break
+                    #     else: 
+                    #         p3 = [i, j]
+                    # else:
+                    #     x.append(i)
+                    #     y.append(j)
+                    
+        # print(f"{points[0]}, {points[len(points)-1]}")
+        for point in points:
+            x.append(point[0])
+            y.append(point[1])
     return np.asfortranarray([x, y])
 
 
+def findPoints(point, graph):
+    # for each axis neighbor of point, 
+        # check if 1, 
+            # yes, then store into p and then index point to this point with 1; break the for loop
+    # if axis neighbor is not found, check diaganol points
+        # check if 1, 
+            # yes, then store into p and then index point to this point with 1; break the for loop
+
+    # print("start find points")
+    p = np.array([point])
+    newpoint = point
+    while True:
+        x = newpoint[0]
+        y = newpoint[1]
+        if graph[x, y-1]: 
+            newpoint = [x, y-1]
+        elif graph[x, y+1]:
+            newpoint = [x, y+1]
+        elif graph[x-1, y]:
+            newpoint = [x-1, y]
+        elif graph[x+1, y]:
+            newpoint = [x+1, y]
+        elif graph[x-1, y-1]: 
+            newpoint = [x-1, y-1]
+        elif graph[x+1, y+1]:
+            newpoint = [x+1, y+1]
+        elif graph[x-1, y+1]:
+            newpoint = [x-1, y+1]
+        elif graph[x+1, y-1]:
+            newpoint = [x+1, y-1]
+        else:
+            break
+        graph[x, y] = 0
+        p = np.append(p, [newpoint] ,axis=0)
+    return p
+        
+    # while True:
+    #     for i in range(-1, 2):
+    #         for j in range(-1, 2):
+    #             x = newpoint[0]
+    #             y = newpoint[1]
+    #             flag = False
+    #             if abs(i) + abs(j) == 1:
+    #                 if connectedRegionMatrix[x + 1 + i, y + 1 + j]: 
+    #                     newpoint = [x + i, y + j]
+    #                     connectedRegionMatrix[x, y] = 0
+    #                     p = np.append(p, newpoint)
+    #                     continue
+    #             if abs(i) + abs(j) == 2:
+    #                 if connectedRegionMatrix[x + 1 + i, y + 1 + j]: 
+    #                     newpoint = [x + i, y + j]
+    #                     connectedRegionMatrix[x, y] = 0
+    #                     p = np.append(p, newpoint)
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 1 0 0
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 1 0
+                        # 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 1 1 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                        # 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        
+
+    
 def extractControlPoints(nodes, degree=3):
     xnew = [nodes[0][0]]
     ynew = [nodes[1][0]]
@@ -111,18 +194,19 @@ def isTconnection(matrix):
 
 
 def bwlabel(inputMatrix):
-    label = 0
-    res = 1 * inputMatrix
+    label = 1
+    res = 1 * inputMatrix # convert boolean to 1 or 0
     flag = inputMatrix
     x = len(res)
     y = len(res[0])
     for i in range(x):
         for j in range(y):
             if not flag[i, j]: continue
-            label += 1
+            # label += 1
             res[i, j] = label
             DFS(res, i, j, flag)
     return res, label
+
 
 def DFS(res, i, j, flag):
     flag[i, j] = 0
@@ -315,3 +399,48 @@ def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
     # plt.legend(loc='best')
     
     # plt.show()
+
+
+def isEndPoint(matrix):
+    # print("start end point")
+    # print(f"{matrix}")
+    # 0 1 0 
+    # 1 1 0
+    # 0 0 0
+
+    # 0 0 0 
+    # 1 1 1
+    # 0 0 0
+    
+    # 0 0 1 
+    # 0 1 0
+    # 0 0 1
+
+    # 0 0 1 
+    # 0 1 0
+    # 0 0 1
+
+    if matrix.sum() == 2:
+        return True
+
+    if matrix.sum() == 3:
+        if sum(matrix[0][:])==2 and matrix[0][1]:
+            return True
+        if sum(matrix[2][:])==2 and matrix[2][1]:
+            return True
+        if sum(matrix[:][0])==2 and matrix[1][0]:
+            return True
+        if sum(matrix[:][2])==2 and matrix[1][2]:
+            return True
+
+    
+    # if sum([sum(matrix[0][:])==0, sum(matrix[:][0])==0]) >= 2:
+    #     return True
+    # if sum([sum(matrix[0][:])==0, sum(matrix[:][2])==0]) >= 2:
+    #     return True
+    # if sum([sum(matrix[2][:])==0, sum(matrix[:][0])==0]) >= 2:
+    #     return True
+    # if sum([sum(matrix[2][:])==0, sum(matrix[:][2])==0]) >= 2:
+    #     return True
+
+    return False
