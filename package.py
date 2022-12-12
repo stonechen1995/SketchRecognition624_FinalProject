@@ -33,12 +33,32 @@ def extractContours(contours):
 # extract points in the region of max area in the binary image into np.array
 def convertBinaryToPoints(binaryMatrix):
     connectedRegionMatrix, numOfConnectedRegions = bwlabel(binaryMatrix)
+    # print(numOfConnectedRegions)
 
     List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
     index_maxAreaOfRegions = max(range(len(List_AreaOfConnectedRegions)), key=List_AreaOfConnectedRegions.__getitem__)
     maxArea = List_AreaOfConnectedRegions[index_maxAreaOfRegions]
+
+    print('List_AreaOfConnectedRegions: ', List_AreaOfConnectedRegions)
+    print('index_maxAreaOfRegions: ', index_maxAreaOfRegions)
+    print('maxArea: ', maxArea)
+
     p0 = None
     connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[0]+2))
+    x0 = []
+    y0 = []
+    for i in range(binaryMatrix.shape[0]):
+        for j in range(binaryMatrix.shape[1]):
+            if connectedRegionMatrix[i, j] == index_maxAreaOfRegions: 
+                connectedRegionMatrix[i, j] = 1
+            elif connectedRegionMatrix[i, j] != 0:
+                connectedRegionMatrix[i, j] = 0
+                x0.append(i)
+                y0.append(j)
+            
+
+    # plt.figure(1000)
+    # plt.imshow(connectedRegionMatrix)
     connectedRegionMatrixWithZeros[1:binaryMatrix.shape[0]+1, 1:binaryMatrix.shape[0]+1] = connectedRegionMatrix
     x = []
     y = []
@@ -46,13 +66,25 @@ def convertBinaryToPoints(binaryMatrix):
         shouldBreak = False
         for i in range(0, binaryMatrix.shape[0]):
             for j in range(0, binaryMatrix.shape[0]):
-                if connectedRegionMatrix[i, j] == index_maxAreaOfRegions: 
+                if connectedRegionMatrix[i, j] == 1: 
+                    # print(i, j)
                     if isEndPoint(connectedRegionMatrixWithZeros[i:i+3, j:j+3]):
                         if p0 == None:
                             p0 = [i, j]
-                            connectedRegionMatrixWithZeros[i, j] = 0
+                            connectedRegionMatrixWithZeros[i+1, j+1] = 0
+                            # plt.figure(10000)
+                            # plt.imshow(connectedRegionMatrixWithZeros)
                             points = findPoints(p0, connectedRegionMatrixWithZeros)
+                            if points is None:
+                                print("two pixels")
+                                for i in range(binaryMatrix.shape[0]):
+                                    for j in range(binaryMatrix.shape[1]):
+                                        if connectedRegionMatrix[i, j] == 1: 
+                                            x0.append(i)
+                                            y0.append(j)
                             shouldBreak = True
+                            # print('p0', p0)
+                            # print(points)
                             break
             if shouldBreak: break
                     #     else: 
@@ -62,10 +94,12 @@ def convertBinaryToPoints(binaryMatrix):
                     #     y.append(j)
                     
         # print(f"{points[0]}, {points[len(points)-1]}")
+        if points is None:
+            return None, np.asfortranarray([x0, y0])
         for point in points:
             x.append(point[0])
             y.append(point[1])
-    return np.asfortranarray([x, y])
+    return np.asfortranarray([x, y]), np.asfortranarray([x0, y0])
 
 
 def findPoints(point, graph):
@@ -78,10 +112,23 @@ def findPoints(point, graph):
 
     # print("start find points")
     p = np.array([point])
-    newpoint = point
+    newpoint = [point[0] + 1, point[1] + 1]
+    # print(newpoint)
+    # plt.figure(10000)
+    # plt.imshow(graph)
+    # print(graph[newpoint[0]-1, newpoint[1]-1])
+    # print(graph[newpoint[0]+1, newpoint[1]-1])
+    # print(graph[newpoint[0]-1, newpoint[1]+1])
+    # print(graph[newpoint[0]+1, newpoint[1]+1])
     while True:
         x = newpoint[0]
         y = newpoint[1]
+
+        if graph[x-1,y-1] and graph[x-1, y] and graph[x, y-1]: return None
+        if graph[x-1,y+1] and graph[x-1, y] and graph[x, y+1]: return None
+        if graph[x+1,y-1] and graph[x+1, y] and graph[x, y-1]: return None
+        if graph[x+1,y+1] and graph[x+1, y] and graph[x, y+1]: return None
+        
         if graph[x, y-1]: 
             newpoint = [x, y-1]
         elif graph[x, y+1]:
@@ -101,7 +148,7 @@ def findPoints(point, graph):
         else:
             break
         graph[x, y] = 0
-        p = np.append(p, [newpoint] ,axis=0)
+        p = np.append(p, [[newpoint[0]-1, newpoint[1]-1]] ,axis=0)
     return p
         
     # while True:
@@ -190,11 +237,35 @@ def plotImg(originalName, index, old_nodes=[0], ifPlotOldNode=False, new_curve=N
 def isTconnection(matrix):
     if sum(matrix[0][:])==3 or sum(matrix[2][:])==3 or sum(matrix[:][0])==3 or sum(matrix[:][2])==3:
         return True
+    if sum(matrix[0][:])==2 and matrix[0][1]==0 and sum(matrix[2][:])>0:
+        return True
+    if sum(matrix[2][:])==2 and matrix[2][1]==0 and sum(matrix[0][:])>0:
+        return True
+    if sum(matrix[:][0])==2 and matrix[1][0]==0 and sum(matrix[:][0])>0:
+        return True
+    if sum(matrix[:][2])==2 and matrix[1][2]==0 and sum(matrix[:][2])>0:
+        return True
     return False
+
+    # 1 0 1
+    # 0 1 0
+    # 0 1 0 
+    # 0 1 0
+    # 0 1 0 
+    # 0 1 0
+    # 0 1 0 
+    # 0 1 0
+    # 0 1 0 
+
+
+
+    # 1 1 1
+    # 0 1 0
+    # 0 0 0
 
 
 def bwlabel(inputMatrix):
-    label = 1
+    label = 0
     res = 1 * inputMatrix # convert boolean to 1 or 0
     flag = inputMatrix
     x = len(res)
@@ -202,7 +273,7 @@ def bwlabel(inputMatrix):
     for i in range(x):
         for j in range(y):
             if not flag[i, j]: continue
-            # label += 1
+            label += 1
             res[i, j] = label
             DFS(res, i, j, flag)
     return res, label
@@ -234,13 +305,15 @@ def countAreaOfRegion(inputMatrix, numOfConnectedRegions):
 # input  [[x0,x1,x2,x3],[y0,y1,y2,y3]] 
 # output [[[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]], ....]
 def randomDeform(node, num_deform, degree):
-    res = []
+    res = [node]
+    # print(res)
     for _ in range(num_deform):
         tmp = node.copy()
         shift = np.random.rand(2, 2) * (degree * 2) - degree
         tmp[:, 1:3] += shift.astype(int)
         # print(tmp)
         res.append(tmp)
+    # print(res)
     return res
 
 def bezier_curve(p0, p1, p2, p3, inserted):
@@ -419,6 +492,7 @@ def isEndPoint(matrix):
     # 0 0 1 
     # 0 1 0
     # 0 0 1
+    # print('sum', matrix.sum())
 
     if matrix.sum() == 2:
         return True
