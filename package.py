@@ -5,7 +5,7 @@ import bezier
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
+label_list = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71]
 
 def thin_demo(image):
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -29,6 +29,44 @@ def extractContours(contours):
         y.append(i[1])
     return np.asfortranarray([x, y])
 
+def convertBinaryToLists(binaryMatrix):
+    connectedRegionMatrix, numOfConnectedRegions = bwlabel(binaryMatrix)
+    # plt.figure(10)
+    # plt.imshow(connectedRegionMatrix)
+    # print('numOfConnectedRegions', numOfConnectedRegions)
+
+    List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
+    # print('List_AreaOfConnectedRegions', List_AreaOfConnectedRegions)
+
+    connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[1]+2))
+    connectedRegionMatrixWithZeros[1:binaryMatrix.shape[0]+1, 1:binaryMatrix.shape[1]+1] = connectedRegionMatrix
+    # plt.figure(100)
+    # plt.imshow(connectedRegionMatrixWithZeros)
+
+    lists = []
+    for k in range(0, numOfConnectedRegions):
+        if List_AreaOfConnectedRegions[k] <= 3: continue
+        p0 = None
+        shouldBreak = False
+        label = label_list[k]
+        # print(label)
+
+        for i in range(0, binaryMatrix.shape[0]):
+            for j in range(0, binaryMatrix.shape[0]):
+                if connectedRegionMatrix[i, j] != label: continue
+                if isEndPoint(connectedRegionMatrixWithZeros[i:i+3, j:j+3], label):
+                    if p0 == None:
+                        p0 = [i, j]
+                        # print(p0)
+
+                        connectedRegionMatrixWithZeros[i+1, j+1] = 0
+                        points = findPoints(p0, connectedRegionMatrixWithZeros, label)
+                        shouldBreak = True
+                        lists.append(points)
+                        break
+            if shouldBreak: break
+    return lists, List_AreaOfConnectedRegions
+
 
 # extract points in the region of max area in the binary image into np.array
 def convertBinaryToPoints(binaryMatrix):
@@ -36,6 +74,10 @@ def convertBinaryToPoints(binaryMatrix):
     # print(numOfConnectedRegions)
 
     List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
+    Dict_Regions = {0: 0}
+    for i in range(1, len(List_AreaOfConnectedRegions)+1):
+        Dict_Regions[i] = List_AreaOfConnectedRegions[i]
+
     index_maxAreaOfRegions = max(range(len(List_AreaOfConnectedRegions)), key=List_AreaOfConnectedRegions.__getitem__)
     maxArea = List_AreaOfConnectedRegions[index_maxAreaOfRegions]
 
@@ -102,7 +144,7 @@ def convertBinaryToPoints(binaryMatrix):
     return np.asfortranarray([x, y]), np.asfortranarray([x0, y0])
 
 
-def findPoints(point, graph):
+def findPoints(point, graph, label):
     # for each axis neighbor of point, 
         # check if 1, 
             # yes, then store into p and then index point to this point with 1; break the for loop
@@ -111,8 +153,12 @@ def findPoints(point, graph):
             # yes, then store into p and then index point to this point with 1; break the for loop
 
     # print("start find points")
-    p = np.array([point])
-    newpoint = [point[0] + 1, point[1] + 1]
+    x_list = np.array([point[0]])
+    y_list = np.array([point[1]])
+    x = point[0] + 1
+    y = point[1] + 1
+    newpoint = [x, y]
+    # print(label)
     # print(newpoint)
     # plt.figure(10000)
     # plt.imshow(graph)
@@ -120,36 +166,36 @@ def findPoints(point, graph):
     # print(graph[newpoint[0]+1, newpoint[1]-1])
     # print(graph[newpoint[0]-1, newpoint[1]+1])
     # print(graph[newpoint[0]+1, newpoint[1]+1])
-    while True:
-        x = newpoint[0]
-        y = newpoint[1]
-
-        if graph[x-1,y-1] and graph[x-1, y] and graph[x, y-1]: return None
-        if graph[x-1,y+1] and graph[x-1, y] and graph[x, y+1]: return None
-        if graph[x+1,y-1] and graph[x+1, y] and graph[x, y-1]: return None
-        if graph[x+1,y+1] and graph[x+1, y] and graph[x, y+1]: return None
+    while x in range(graph.shape[0]) and y in range(graph.shape[1]):
+        # if graph[x-1,y-1] and graph[x-1, y] and graph[x, y-1]: return None
+        # if graph[x-1,y+1] and graph[x-1, y] and graph[x, y+1]: return None
+        # if graph[x+1,y-1] and graph[x+1, y] and graph[x, y-1]: return None
+        # if graph[x+1,y+1] and graph[x+1, y] and graph[x, y+1]: return None
         
-        if graph[x, y-1]: 
+        if graph[x, y-1] == label: 
             newpoint = [x, y-1]
-        elif graph[x, y+1]:
+        elif graph[x, y+1] == label:
             newpoint = [x, y+1]
-        elif graph[x-1, y]:
+        elif graph[x-1, y] == label:
             newpoint = [x-1, y]
-        elif graph[x+1, y]:
+        elif graph[x+1, y] == label:
             newpoint = [x+1, y]
-        elif graph[x-1, y-1]: 
+        elif graph[x-1, y-1] == label: 
             newpoint = [x-1, y-1]
-        elif graph[x+1, y+1]:
+        elif graph[x+1, y+1] == label:
             newpoint = [x+1, y+1]
-        elif graph[x-1, y+1]:
+        elif graph[x-1, y+1] == label:
             newpoint = [x-1, y+1]
-        elif graph[x+1, y-1]:
+        elif graph[x+1, y-1] == label:
             newpoint = [x+1, y-1]
         else:
             break
         graph[x, y] = 0
-        p = np.append(p, [[newpoint[0]-1, newpoint[1]-1]] ,axis=0)
-    return p
+        x = newpoint[0]
+        y = newpoint[1]
+        x_list = np.append(x_list, x - 1)
+        y_list = np.append(y_list, y - 1)
+    return np.asfortranarray([x_list, y_list])
         
     # while True:
     #     for i in range(-1, 2):
@@ -246,6 +292,14 @@ def isTconnection(matrix):
         return True
     if sum(matrix[:, 2])==2 and matrix[1][2]==0 and sum(matrix[:, 0])>0:
         return True
+    if matrix[0,0] and matrix[1,2] and matrix[2,1]:
+        return True
+    if matrix[0,2] and matrix[1,0] and matrix[2,1]:
+        return True
+    if matrix[2,0] and matrix[0,1] and matrix[1,2]:
+        return True
+    if matrix[2,2] and matrix[1,0] and matrix[0,1]:
+        return True
     return False
 
     # 1 0 1
@@ -266,7 +320,7 @@ def isTconnection(matrix):
 
 
 def bwlabel(inputMatrix):
-    label = 0
+    num = 0
     res = 1 * inputMatrix # convert boolean to 1 or 0
     flag = inputMatrix
     x = len(res)
@@ -274,10 +328,10 @@ def bwlabel(inputMatrix):
     for i in range(x):
         for j in range(y):
             if not flag[i, j]: continue
-            label += 1
-            res[i, j] = label
+            res[i, j] = label_list[num]
             DFS(res, i, j, flag)
-    return res, label
+            num += 1
+    return res, num
 
 
 def DFS(res, i, j, flag):
@@ -294,12 +348,12 @@ def DFS(res, i, j, flag):
 
 def countAreaOfRegion(inputMatrix, numOfConnectedRegions):
     row = inputMatrix.shape[0]
-    areaOfEachRegion = list(0 for _ in range(numOfConnectedRegions+1))
+    areaOfEachRegion = list(0 for _ in range(numOfConnectedRegions))
     for i in range(0, row):
         for j in range(0, row):
             if inputMatrix[i, j]:
                 # print(f"numOfConnectedRegions = {numOfConnectedRegions}; inputMatrix[i, j] = {inputMatrix[i, j]}")
-                areaOfEachRegion[inputMatrix[i, j]] = areaOfEachRegion[inputMatrix[i, j]] + 1
+                areaOfEachRegion[label_list.index(inputMatrix[i, j])] += 1
     return areaOfEachRegion
 
 
@@ -475,7 +529,7 @@ def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
     # plt.show()
 
 
-def isEndPoint(matrix):
+def isEndPoint(matrix, label):
     # print("start end point")
     # print(f"{matrix}")
     # 0 1 0 
@@ -495,27 +549,17 @@ def isEndPoint(matrix):
     # 0 0 1
     # print('sum', matrix.sum())
 
-    if matrix.sum() == 2:
+    if matrix.sum() == 2 * label:
         return True
 
     if matrix.sum() == 3:
-        if sum(matrix[0][:])==2 and matrix[0][1]:
+        if sum(matrix[0][:])==2 * label and matrix[0][1] == label:
             return True
-        if sum(matrix[2][:])==2 and matrix[2][1]:
+        if sum(matrix[2][:])==2 * label and matrix[2][1] == label:
             return True
-        if sum(matrix[:][0])==2 and matrix[1][0]:
+        if sum(matrix[:][0])==2 * label and matrix[1][0] == label:
             return True
-        if sum(matrix[:][2])==2 and matrix[1][2]:
+        if sum(matrix[:][2])==2 * label and matrix[1][2] == label:
             return True
-
-    
-    # if sum([sum(matrix[0][:])==0, sum(matrix[:][0])==0]) >= 2:
-    #     return True
-    # if sum([sum(matrix[0][:])==0, sum(matrix[:][2])==0]) >= 2:
-    #     return True
-    # if sum([sum(matrix[2][:])==0, sum(matrix[:][0])==0]) >= 2:
-    #     return True
-    # if sum([sum(matrix[2][:])==0, sum(matrix[:][2])==0]) >= 2:
-    #     return True
 
     return False

@@ -11,7 +11,7 @@
 # 存下来。
 
 
-from package import thin_demo, extractContours, generateBezierCurve, isTconnection, bwlabel, countAreaOfRegion, extractControlPoints, convertBinaryToPoints, randomDeform, smoothing_base_bezier
+from package import thin_demo, extractContours, generateBezierCurve, isTconnection, bwlabel, countAreaOfRegion, extractControlPoints, convertBinaryToPoints, convertBinaryToLists, randomDeform, smoothing_base_bezier
 import numpy as np
 import math
 import cv2 as cv
@@ -30,15 +30,15 @@ os.mkdir(os.path.join(os.getcwd(), "new_image"))
 
 path = 'archive/Img/'
 # path = 'archive/matlab/'
-pathname = 'new_images/'
+pathname = 'new_image/'
 for filename in os.listdir(path):
     name, extension = filename.split(".")
     category, index = name.split("-")
     extension = "." + extension
     ##############
-    name = 'img011-035'
+    # name = 'img011-035'
     ##############
-    print(name)
+    # print(name)
     img = cv.imread(path + name + extension)
     row = img.shape[0]
     skel = thin_demo(img)
@@ -47,11 +47,11 @@ for filename in os.listdir(path):
 
         
     ############ parameters to be changed ############
-    degreeOfShifting = math.floor(row/256) * 4 # to be modified
+    degreeOfShifting = math.floor(row/256) # to be modified
     patchResolution = int(row / 256 * 32) # to be modified
     numOfDeform = 3 # to be modified
 
-    ############ parameters to be changed ############
+    ############ parameters to be changed ############  
 
     for i in range(1, row-1):
         for j in range(1, row-1):
@@ -60,93 +60,28 @@ for filename in os.listdir(path):
                 if (isTconnected):
                     skel[i, j] = False
     
-    mapsOfPotins = {} # to store points
-    for i in range(1, numOfDeform+1): mapsOfPotins[i] = [[],[]]
-    shouldBreak = False
-    for i in range(0, int(row/patchResolution)):
-        for j in range(0, int(row / patchResolution)):
-    # i = 12
-    # j = 8
+    pointList, lengthList = convertBinaryToLists(skel)
 
-    # 6 9
-    # 7 8
-    # 8 8
-    # 9 9
-    # 10 8
-    # 11 8
-    # 12 8
-    # for each patch
-            patch = skel[i * patchResolution : (i+1) * patchResolution, j * patchResolution : (j+1) * patchResolution]
-            # if (i == 8 and j == 12): 
-            #     plt.figure(0)
-            #     plt.imshow(patch)
-            if patch.any() == True:
-                # print('i, j',i, j)
-
-                # break
-                # plt.subplot(111)
-                # plt.imshow(patch)
-                # plt.show()
-                pointsInMax, pointRest = convertBinaryToPoints(patch)
-                # print(pointRest)
-
-                # if pointsInMax is None:
-                #     ind = 1
-                #     for _ in range(numOfDeform):
-                #         axs = plt.gca()
-                #         axs.axis("equal")
-                #         axs.set_axis_off()
-                #         plt.figure(ind)
-                #         plt.plot(pointRest[1] + j * patchResolution, -pointRest[0] - i * patchResolution, color='black')
-                #         ind += 1
-
-                # 4 control points from the original segment
-                if pointsInMax.shape[1] > 3:
-                    controlPoints_of_segment = extractControlPoints(pointsInMax, degree=3) 
-                    curve = bezier.Curve(controlPoints_of_segment, degree=3)
-                    # 4 Beziered points from the original segment
-                    list_deformedPoints = randomDeform(curve.nodes, numOfDeform, degreeOfShifting)
-                    ind = 1
-                    for point in list_deformedPoints:
-                        x = point[0] + i * patchResolution
-                        y = point[1] + j * patchResolution
-                        
-                        x_curve, y_curve = smoothing_base_bezier(x, y, k=0.6, closed=False)
-
-
-                        axs = plt.gca()
-                        axs.axis("equal")
-                        axs.set_axis_off()
-                        plt.figure(ind)
-
-
-                        gridx = np.array(list(range(i * patchResolution, (i+1) * patchResolution)))
-                        gridy = np.array([j * patchResolution] * patchResolution)
-                        plt.plot(gridy, -gridx)
-
-                        gridx = np.array(list(range(i * patchResolution, (i+1) * patchResolution)))
-                        gridy = np.array([(j+1) * patchResolution] * patchResolution)
-                        plt.plot(gridy, -gridx)
-
-                        gridx = np.array([i * patchResolution] * patchResolution)
-                        gridy = np.array(list(range(j * patchResolution, (j+1) * patchResolution)))
-                        plt.plot(gridy, -gridx)
-
-                        gridx = np.array([(i+1) * patchResolution] * patchResolution)
-                        gridy = np.array(list(range(j * patchResolution, (j+1) * patchResolution)))
-                        plt.plot(gridy, -gridx)
-
-
-                        plt.plot(y_curve, -x_curve, color='black')
-                        # plt.plot(pointRest[1] + j * patchResolution, -pointRest[0] - i * patchResolution, color='black')
-                        # plt.plot(y, -x, 'ro')
-                        plt.savefig(pathname + name + '-{0:03}'.format(ind) + '.png')
-                        ind += 1
-                        # break
-        #     if i == 7 and j == 11:
-        #         shouldBreak = True
-        #         break
-        # if shouldBreak:
-        #     break
+    for i in range(len(pointList)):
+        # plt.plot(points[1], -points[0], color='black')
+        
+        control_points = extractControlPoints(pointList[i], degree=3)
+        curve = bezier.Curve(control_points, degree=3)
+        # print(lengthList[i])
+        list_deformedPoints = randomDeform(curve.nodes, numOfDeform, degreeOfShifting * lengthList[i] / 12)
+        ind = 1
+        for point in list_deformedPoints:
+            x_curve, y_curve = smoothing_base_bezier(point[0], point[1], k=0.6, closed=False)
+            axs = plt.gca()
+            axs.axis("equal")
+            axs.set_axis_off()
+            plt.figure(ind)
+            plt.plot(y_curve, -x_curve, color='black')
+            plt.savefig(pathname + name + '-{0:03}'.format(ind) + '.png')
+            img = cv.imread(pathname + name + '-{0:03}'.format(ind) + '.png', 0)
+            kernel = np.ones((35, 35), 'uint8')
+            dilate_img = cv.dilate(255-img, kernel, iterations=1)
+            cv.imwrite(pathname + name + '-{0:03}'.format(ind) + '.png', dilate_img)
+            ind += 1
 
     break
