@@ -237,13 +237,14 @@ def plotImg(originalName, index, old_nodes=[0], ifPlotOldNode=False, new_curve=N
 def isTconnection(matrix):
     if sum(matrix[0][:])==3 or sum(matrix[2][:])==3 or sum(matrix[:][0])==3 or sum(matrix[:][2])==3:
         return True
+    # if matrix[0][0] and matrix[0][2] and sum(matrix[2][:]) > 0
     if sum(matrix[0][:])==2 and matrix[0][1]==0 and sum(matrix[2][:])>0:
         return True
     if sum(matrix[2][:])==2 and matrix[2][1]==0 and sum(matrix[0][:])>0:
         return True
-    if sum(matrix[:][0])==2 and matrix[1][0]==0 and sum(matrix[:][0])>0:
+    if sum(matrix[:, 0])==2 and matrix[1][0]==0 and sum(matrix[:, 2])>0:
         return True
-    if sum(matrix[:][2])==2 and matrix[1][2]==0 and sum(matrix[:][2])>0:
+    if sum(matrix[:, 2])==2 and matrix[1][2]==0 and sum(matrix[:, 0])>0:
         return True
     return False
 
