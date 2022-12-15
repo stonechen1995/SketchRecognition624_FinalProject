@@ -58,16 +58,14 @@ for filename in os.listdir(path):
         ind = 0
         for point in list_deformedPoints:
             x_curve, y_curve = smoothing_base_bezier(point[0], point[1], k=0.6, closed=False)
-            axs = plt.gca()
-            axs.axis("equal")
-            axs.set_axis_off()
             plt.figure(ind)
+            plt.axis('off')
             plt.plot(y_curve, -x_curve, color='black')
             plt.savefig(pathname + name + '-{0:03}'.format(ind) + '.png')
-            img = cv.imread(pathname + name + '-{0:03}'.format(ind) + '.png', 0)
-            kernel = np.ones((35, 35), 'uint8')
-            dilate_img = cv.dilate(255-img, kernel, iterations=1)
-            cv.imwrite(pathname + name + '-{0:03}'.format(ind) + '.png', dilate_img)
+            # img = cv.imread(pathname + name + '-{0:03}'.format(ind) + '.png', 0)
+            # kernel = np.ones((30, 30), 'uint8')
+            # dilate_img = cv.dilate(255-img, kernel, iterations=1)
+            # cv.imwrite(pathname + name + '-{0:03}'.format(ind) + '.png', dilate_img)
             ind += 1
 
     break
