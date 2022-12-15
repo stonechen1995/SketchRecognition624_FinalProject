@@ -4,6 +4,9 @@ import numpy as np
 import bezier
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
+print(sys.setrecursionlimit(2000))
+print(sys.getrecursionlimit())
 
 label_list = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71]
 
@@ -31,12 +34,12 @@ def extractContours(contours):
 
 def convertBinaryToLists(binaryMatrix):
     connectedRegionMatrix, numOfConnectedRegions = bwlabel(binaryMatrix)
-    # plt.figure(10)
-    # plt.imshow(connectedRegionMatrix)
-    # print('numOfConnectedRegions', numOfConnectedRegions)
+    plt.figure(10)
+    plt.imshow(connectedRegionMatrix)
+    print('numOfConnectedRegions', numOfConnectedRegions)
 
     List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
-    # print('List_AreaOfConnectedRegions', List_AreaOfConnectedRegions)
+    print('List_AreaOfConnectedRegions', List_AreaOfConnectedRegions)
 
     connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[1]+2))
     connectedRegionMatrixWithZeros[1:binaryMatrix.shape[0]+1, 1:binaryMatrix.shape[1]+1] = connectedRegionMatrix
@@ -50,22 +53,32 @@ def convertBinaryToLists(binaryMatrix):
         shouldBreak = False
         label = label_list[k]
         # print(label)
+        tmp = []
 
         for i in range(0, binaryMatrix.shape[0]):
             for j in range(0, binaryMatrix.shape[0]):
                 if connectedRegionMatrix[i, j] != label: continue
+                tmp = [i, j]
                 if isEndPoint(connectedRegionMatrixWithZeros[i:i+3, j:j+3], label):
                     if p0 == None:
                         p0 = [i, j]
-                        # print(p0)
-
-                        connectedRegionMatrixWithZeros[i+1, j+1] = 0
-                        points = findPoints(p0, connectedRegionMatrixWithZeros, label)
+                        print('p0', p0)
                         shouldBreak = True
-                        lists.append(points)
                         break
             if shouldBreak: break
-    return lists, List_AreaOfConnectedRegions
+        connectedRegionMatrixWithZeros[tmp[0]+1, tmp[1]+1] = 0
+        if p0 is None:
+            p0 = tmp
+        points = findPoints(p0, connectedRegionMatrixWithZeros, label)
+        l = len(points[0])
+        print(l)
+        threshold = 75
+        num = 0
+        while l - threshold * (num+1) > 0:
+            lists.append([points[0][num*threshold: (num+1)*threshold], points[1][num*threshold: (num+1)*threshold]])
+            num += 1
+        lists.append([points[0][num*threshold: l], points[1][num*threshold: l]])
+    return lists
 
 
 # extract points in the region of max area in the binary image into np.array
@@ -322,7 +335,7 @@ def isTconnection(matrix):
 def bwlabel(inputMatrix):
     num = 0
     res = 1 * inputMatrix # convert boolean to 1 or 0
-    flag = inputMatrix
+    flag = inputMatrix.copy()
     x = len(res)
     y = len(res[0])
     for i in range(x):
@@ -336,6 +349,7 @@ def bwlabel(inputMatrix):
 
 def DFS(res, i, j, flag):
     flag[i, j] = 0
+    # print(sum(sum(flag)))
     for x in [-1, 0, 1]:
         for y in [-1, 0, 1]:
             # if abs(x) + abs(y) > 1 or x == y: continue
