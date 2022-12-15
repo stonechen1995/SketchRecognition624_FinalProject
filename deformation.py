@@ -1,17 +1,5 @@
-# procedure:
-# break t-connection。
-# 分patch。
-# initialize 9组list， list0 — list8
-# 每个patch，
-# 1. 找最大的连起来的区域的所有点，其他的归0。
-# 2. 把找到的这块区域所有点存到一个temp list, 再找到这个temp list其中4个control points。将这4个点的绝对坐标存进list0.
-# 3. 把这个temp list 喂到bezier里，得到4个点，再进行8组shift得到另外8组4个点。将这4个点的绝对坐标分别存进list1 — list8
-# 4. 用polyline function分别连list0 — list8中所有的点, https://www.tutorialspoint.com/get-the-least-squares-fit-of-a-polynomial-to-data-in-python
-# 5. 
-# 存下来。
-
-
-from package import thin_demo, extractContours, generateBezierCurve, isTconnection, bwlabel, countAreaOfRegion, extractControlPoints, convertBinaryToPoints, convertBinaryToLists, randomDeform, smoothing_base_bezier
+# from package import extractContours, generateBezierCurve, bwlabel, countAreaOfRegion, convertBinaryToPoints
+from package import thin_demo, isTconnection, extractControlPoints, convertBinaryToLists, randomDeform, smoothing_base_bezier
 import numpy as np
 import math
 import cv2 as cv
@@ -20,7 +8,6 @@ import random
 import os
 import shutil
 import matplotlib.pyplot as plt
-from matplotlib.transforms import Affine2D
 
 # delete and create a folder for outputs.
 try:
@@ -36,7 +23,7 @@ for filename in os.listdir(path):
     category, index = name.split("-")
     extension = "." + extension
     ##############
-    # name = 'img011-035'
+    name = 'img002-006'
     ##############
     # print(name)
     img = cv.imread(path + name + extension)
@@ -47,10 +34,9 @@ for filename in os.listdir(path):
 
         
     ############ parameters to be changed ############
-    degreeOfShifting = math.floor(row/256) # to be modified
+    degreeOfShifting = math.floor(row / 256) # to be modified
     patchResolution = int(row / 256 * 32) # to be modified
     numOfDeform = 3 # to be modified
-
     ############ parameters to be changed ############  
 
     for i in range(1, row-1):
@@ -69,7 +55,7 @@ for filename in os.listdir(path):
         curve = bezier.Curve(control_points, degree=3)
         # print(lengthList[i])
         list_deformedPoints = randomDeform(curve.nodes, numOfDeform, degreeOfShifting * lengthList[i] / 12)
-        ind = 1
+        ind = 0
         for point in list_deformedPoints:
             x_curve, y_curve = smoothing_base_bezier(point[0], point[1], k=0.6, closed=False)
             axs = plt.gca()

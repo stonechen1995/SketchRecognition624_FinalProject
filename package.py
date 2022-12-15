@@ -372,17 +372,10 @@ def randomDeform(node, num_deform, degree):
     return res
 
 def bezier_curve(p0, p1, p2, p3, inserted):
-    """
-    三阶贝塞尔曲线
-    
-    p0, p1, p2, p3  - 点坐标，tuple、list或numpy.ndarray类型
-    inserted        - p0和p3之间插值的数量
-    """
-    
-    assert isinstance(p0, (tuple, list, np.ndarray)), u'点坐标不是期望的元组、列表或numpy数组类型'
-    assert isinstance(p0, (tuple, list, np.ndarray)), u'点坐标不是期望的元组、列表或numpy数组类型'
-    assert isinstance(p0, (tuple, list, np.ndarray)), u'点坐标不是期望的元组、列表或numpy数组类型'
-    assert isinstance(p0, (tuple, list, np.ndarray)), u'点坐标不是期望的元组、列表或numpy数组类型'
+    assert isinstance(p0, (tuple, list, np.ndarray)), u'the coordinates of point is not expected type of tuple, list or numpy.array'
+    assert isinstance(p0, (tuple, list, np.ndarray)), u'the coordinates of point is not expected type of tuple, list or numpy.array'
+    assert isinstance(p0, (tuple, list, np.ndarray)), u'the coordinates of point is not expected type of tuple, list or numpy.array'
+    assert isinstance(p0, (tuple, list, np.ndarray)), u'the coordinates of point is not expected type of tuple, list or numpy.array'
     
     if isinstance(p0, (tuple, list)):
         p0 = np.array(p0)
@@ -401,29 +394,19 @@ def bezier_curve(p0, p1, p2, p3, inserted):
 
 
 def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
-    """
-    基于三阶贝塞尔曲线的数据平滑算法
-    
-    date_x      - x维度数据集，list或numpy.ndarray类型
-    date_y      - y维度数据集，list或numpy.ndarray类型
-    k           - 调整平滑曲线形状的因子，取值一般在0.2~0.6之间。默认值为0.5
-    inserted    - 两个原始数据点之间插值的数量。默认值为10
-    closed      - 曲线是否封闭，如是，则首尾相连。默认曲线不封闭
-    """
-    
-    assert isinstance(date_x, (list, np.ndarray)), u'x数据集不是期望的列表或numpy数组类型'
-    assert isinstance(date_y, (list, np.ndarray)), u'y数据集不是期望的列表或numpy数组类型'
+    assert isinstance(date_x, (list, np.ndarray)), u'The list of x is not expected type of list or numpy.array'
+    assert isinstance(date_y, (list, np.ndarray)), u'The list of y is not expected type of list or numpy.array'
     
     if isinstance(date_x, list) and isinstance(date_y, list):
-        assert len(date_x)==len(date_y), u'x数据集和y数据集长度不匹配'
+        assert len(date_x)==len(date_y), u'The lenths of x and y are not matched'
         date_x = np.array(date_x)
         date_y = np.array(date_y)
     elif isinstance(date_x, np.ndarray) and isinstance(date_y, np.ndarray):
-        assert date_x.shape==date_y.shape, u'x数据集和y数据集长度不匹配'
+        assert date_x.shape==date_y.shape, u'The lenths of x and y are not matched'
     else:
-        raise Exception(u'x数据集或y数据集类型错误')
+        raise Exception(u'Wrong type of x or y')
     
-    # 第1步：生成原始数据折线中点集
+    # step 1: generate points data on the stroke
     mid_points = list()
     for i in range(1, date_x.shape[0]):
         mid_points.append({
@@ -439,7 +422,7 @@ def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
             'mid':      ((date_x[0]+date_x[-1])/2.0, (date_y[0]+date_y[-1])/2.0)
         })
     
-    # 第2步：找出中点连线及其分割点
+    # step 2: find the middle point and its split points.
     split_points = list()
     for i in range(len(mid_points)):
         if i < (len(mid_points)-1):
@@ -466,18 +449,18 @@ def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
             'split':    (mx0+(mx1-mx0)*k_split, my0+(my1-my0)*k_split)
         })
     
-    # 第3步：平移中点连线，调整端点，生成控制点
+    # step 3: move the middle point; adjust the endpoints; generate control points
     crt_points = list()
     for i in range(len(split_points)):
-        vx, vy = mid_points[i]['end'] # 当前顶点的坐标
-        dx = vx - split_points[i]['split'][0] # 平移线段x偏移量
-        dy = vy - split_points[i]['split'][1] # 平移线段y偏移量
+        vx, vy = mid_points[i]['end'] # current endpoint
+        dx = vx - split_points[i]['split'][0] # move x of the split point
+        dy = vy - split_points[i]['split'][1] # move y of the split point
         
-        sx, sy = split_points[i]['start'][0]+dx, split_points[i]['start'][1]+dy # 平移后线段起点坐标
-        ex, ey = split_points[i]['end'][0]+dx, split_points[i]['end'][1]+dy # 平移后线段终点坐标
+        sx, sy = split_points[i]['start'][0]+dx, split_points[i]['start'][1]+dy # move the starting point of the next segment
+        ex, ey = split_points[i]['end'][0]+dx, split_points[i]['end'][1]+dy # move the end point of the next segment
         
-        cp0 = sx+(vx-sx)*k, sy+(vy-sy)*k # 控制点坐标
-        cp1 = ex+(vx-ex)*k, ey+(vy-ey)*k # 控制点坐标
+        cp0 = sx+(vx-sx)*k, sy+(vy-sy)*k # control point
+        cp1 = ex+(vx-ex)*k, ey+(vy-ey)*k # control point
         
         if crt_points:
             crt_points[-1].insert(2, cp0)
@@ -496,7 +479,7 @@ def smoothing_base_bezier(date_x, date_y, k=0.5, inserted=10, closed=False):
                 crt_points.append([mid_points[i+1]['start'], cp1, mid_points[i+1]['end'], mid_points[i+1]['end']])
                 crt_points[0].insert(1, mid_points[0]['start'])
     
-    # 第4步：应用贝塞尔曲线方程插值
+    # step 4: apply Bezier Function for interpolation
     out = list()
     for item in crt_points:
         group = bezier_curve(item[0], item[1], item[2], item[3], inserted)
