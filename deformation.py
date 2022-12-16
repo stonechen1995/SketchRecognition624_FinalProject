@@ -18,10 +18,10 @@ os.mkdir(os.path.join(os.getcwd(), "new_image"))
 path = 'archive/Img/'
 # path = 'archive/matlab/'
 pathname = 'new_image/'
-for i in range(1, 63):
+for mm in range(1, 63):
     ran = random.sample(range(1, 56), 5)
-    for j in range(5):
-        name = 'img{0:03}'.format(i) + '-{0:03}'.format(ran[j])
+    for nn in range(5):
+        name = 'img{0:03}'.format(mm) + '-{0:03}'.format(ran[nn])
         extension = '.png'
         ##############
         # name = 'img001-052'
@@ -42,13 +42,13 @@ for i in range(1, 63):
         # dilate_img = cv.dilate(255-img, kernel, iterations=1)
         # cv.imwrite(pathname + name + '-000' + '.png', dilate_img)
         # plt.close()
-        print(sum(sum(skel)))
+        # print(sum(sum(skel)))
 
             
         ############ parameters to be changed ############
         degreeOfShifting = math.floor(row / 256) # to be modified
         patchResolution = int(row / 256 * 32) # to be modified
-        numOfDeform = 3 # to be modified
+        numOfDeform = 10 # to be modified
         ############ parameters to be changed ############  
 
         for i in range(1, row-1):
@@ -87,11 +87,11 @@ for i in range(1, 63):
                 axs.set_axis_off()
                 plt.savefig(pathname + name + '-{0:03}'.format(ind) + '.png')
                 img = cv.imread(pathname + name + '-{0:03}'.format(ind) + '.png', 0)
-                kernel = np.ones((30, 30), 'uint8')
+                kernel = np.ones((20, 20), 'uint8')
                 dilate_img = cv.dilate(255-img, kernel, iterations=1)
                 cv.imwrite(pathname + name + '-{0:03}'.format(ind) + '.png', dilate_img)
                 ind += 1
             
         plt.close('all')
-        break
+        # break
     # break

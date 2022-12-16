@@ -5,8 +5,8 @@ import bezier
 import pandas as pd
 import matplotlib.pyplot as plt
 import sys
-print(sys.setrecursionlimit(2000))
-print(sys.getrecursionlimit())
+
+sys.setrecursionlimit(2000)
 
 label_list = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71]
 
@@ -34,12 +34,12 @@ def extractContours(contours):
 
 def convertBinaryToLists(binaryMatrix):
     connectedRegionMatrix, numOfConnectedRegions = bwlabel(binaryMatrix)
-    plt.figure(10)
-    plt.imshow(connectedRegionMatrix)
-    print('numOfConnectedRegions', numOfConnectedRegions)
+    # plt.figure(200)
+    # plt.imshow(connectedRegionMatrix)
+    # print('numOfConnectedRegions', numOfConnectedRegions)
 
     List_AreaOfConnectedRegions = countAreaOfRegion(connectedRegionMatrix, numOfConnectedRegions)
-    print('List_AreaOfConnectedRegions', List_AreaOfConnectedRegions)
+    # print('List_AreaOfConnectedRegions', List_AreaOfConnectedRegions)
 
     connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[1]+2))
     connectedRegionMatrixWithZeros[1:binaryMatrix.shape[0]+1, 1:binaryMatrix.shape[1]+1] = connectedRegionMatrix
@@ -62,7 +62,7 @@ def convertBinaryToLists(binaryMatrix):
                 if isEndPoint(connectedRegionMatrixWithZeros[i:i+3, j:j+3], label):
                     if p0 == None:
                         p0 = [i, j]
-                        print('p0', p0)
+                        # print('p0', p0)
                         shouldBreak = True
                         break
             if shouldBreak: break
@@ -71,8 +71,8 @@ def convertBinaryToLists(binaryMatrix):
             p0 = tmp
         points = findPoints(p0, connectedRegionMatrixWithZeros, label)
         l = len(points[0])
-        print(l)
-        threshold = 75
+        # print(l)
+        threshold = 100
         num = 0
         while l - threshold * (num+1) > 0:
             lists.append([points[0][num*threshold: (num+1)*threshold], points[1][num*threshold: (num+1)*threshold]])
@@ -94,9 +94,9 @@ def convertBinaryToPoints(binaryMatrix):
     index_maxAreaOfRegions = max(range(len(List_AreaOfConnectedRegions)), key=List_AreaOfConnectedRegions.__getitem__)
     maxArea = List_AreaOfConnectedRegions[index_maxAreaOfRegions]
 
-    print('List_AreaOfConnectedRegions: ', List_AreaOfConnectedRegions)
-    print('index_maxAreaOfRegions: ', index_maxAreaOfRegions)
-    print('maxArea: ', maxArea)
+    # print('List_AreaOfConnectedRegions: ', List_AreaOfConnectedRegions)
+    # print('index_maxAreaOfRegions: ', index_maxAreaOfRegions)
+    # print('maxArea: ', maxArea)
 
     p0 = None
     connectedRegionMatrixWithZeros = np.zeros((binaryMatrix.shape[0]+2, binaryMatrix.shape[0]+2))
