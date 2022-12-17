@@ -5,3 +5,10 @@ This project has following featrues:
 - Extract skeletons of the input images
 - Generate new skeleton images based on input images with random jitters
 - Reconstruct new handwriting images from skeletons
+- Using ResNet-152 non-pretrained model to do training and testing
+
+## Installation
+To install the project, following the steps:
+1. Install required packages running `pip install -r requirements.txt`
+2. Clone this repository and navigate to the project directory
+3. Download dataset from https://www.kaggle.com/datasets/dhruvildave/english-handwritten-characters-dataset to the project directory
