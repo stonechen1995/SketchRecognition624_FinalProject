@@ -18,3 +18,4 @@ To run the project, go to the project directory and run
 ```
 python deformation.py
 ```
+And a folder called `new_image` will be created at the same directory. The newly generated images are saved in the `new_image` folder.
