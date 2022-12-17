@@ -12,3 +12,9 @@ To install the project, following the steps:
 1. Install required packages running `pip install -r requirements.txt`
 2. Clone this repository and navigate to the project directory
 3. Download dataset from https://www.kaggle.com/datasets/dhruvildave/english-handwritten-characters-dataset to the project directory
+
+## Usage
+To run the project, go to the project directory and run
+```
+python deformation.py
+```
