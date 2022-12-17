@@ -1,1 +1,6 @@
-kivy==2.1.0
+numpy==1.21.5
+opencv-contrib-python==4.6.0.66
+bezier==2021.2.12
+matplotlib==3.5.1
+scikit-image==0.19.2
+pandas==1.4.2

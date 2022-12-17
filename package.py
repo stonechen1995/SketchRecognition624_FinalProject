@@ -1,5 +1,5 @@
 import cv2 as cv
-from skimage.morphology import thin, skeletonize
+from skimage.morphology import thin
 import numpy as np
 import bezier
 import pandas as pd
@@ -297,6 +297,10 @@ def isTconnection(matrix):
     if sum(matrix[0][:])==3 or sum(matrix[2][:])==3 or sum(matrix[:][0])==3 or sum(matrix[:][2])==3:
         return True
     # if matrix[0][0] and matrix[0][2] and sum(matrix[2][:]) > 0
+
+    # 1 0 1
+    # 0 1 0
+    # 0 1 0
     if sum(matrix[0][:])==2 and matrix[0][1]==0 and sum(matrix[2][:])>0:
         return True
     if sum(matrix[2][:])==2 and matrix[2][1]==0 and sum(matrix[0][:])>0:
@@ -305,6 +309,10 @@ def isTconnection(matrix):
         return True
     if sum(matrix[:, 2])==2 and matrix[1][2]==0 and sum(matrix[:, 0])>0:
         return True
+    
+    # 1 0 0
+    # 0 1 1
+    # 0 1 0
     if matrix[0,0] and matrix[1,2] and matrix[2,1]:
         return True
     if matrix[0,2] and matrix[1,0] and matrix[2,1]:
@@ -314,22 +322,6 @@ def isTconnection(matrix):
     if matrix[2,2] and matrix[1,0] and matrix[0,1]:
         return True
     return False
-
-    # 1 0 1
-    # 0 1 0
-    # 0 1 0 
-    # 0 1 0
-    # 0 1 0 
-    # 0 1 0
-    # 0 1 0 
-    # 0 1 0
-    # 0 1 0 
-
-
-
-    # 1 1 1
-    # 0 1 0
-    # 0 0 0
 
 
 def bwlabel(inputMatrix):
@@ -372,7 +364,7 @@ def countAreaOfRegion(inputMatrix, numOfConnectedRegions):
 
 
 # input  [[x0,x1,x2,x3],[y0,y1,y2,y3]] 
-# output [[[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3],[y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]],   [[x0,x1,x2,x3][y0,y1,y2,y3]], ....]
+# output [[[x10,x11,x12,x13],[y10,y11,y12,y13]],   [[x20,x21,x22,x23],[y20,y21,y22,y23]],   [[x30,x31,x32,x33][y30,y31,y32,y33]],   [[x40,x41,x42,x43][y40,y41,y42,y43]], ....]
 def randomDeform(node, num_deform, degree):
     res = [node]
     # print(res)

@@ -15,6 +15,10 @@ try:
 except FileNotFoundError as error: print("new_image/ folder doesn't exist")
 os.mkdir(os.path.join(os.getcwd(), "new_image"))
 
+
+# (10+26+26)*55       = 3410; original dataset; control group
+# (10+26+26)*5*(10+1) = 3410; subset with data augmentation; test group
+
 path = 'archive/Img/'
 # path = 'archive/matlab/'
 pathname = 'new_image/'
@@ -24,7 +28,7 @@ for mm in range(1, 63):
         name = 'img{0:03}'.format(mm) + '-{0:03}'.format(ran[nn])
         extension = '.png'
         ##############
-        # name = 'img001-052'
+        # name = 'img062-042'
         ##############
         print(name)
         img = cv.imread(path + name + extension)
@@ -47,7 +51,6 @@ for mm in range(1, 63):
             
         ############ parameters to be changed ############
         degreeOfShifting = math.floor(row / 256) # to be modified
-        patchResolution = int(row / 256 * 32) # to be modified
         numOfDeform = 10 # to be modified
         ############ parameters to be changed ############  
 
@@ -93,5 +96,5 @@ for mm in range(1, 63):
                 ind += 1
             
         plt.close('all')
-        # break
+    #     break
     # break
