@@ -30,6 +30,4 @@ To train ResNet-152 model by the new image dataset, following the steps:
 - [Scikit-learn Tutorial](https://scikit-learn.org/stable/tutorial/index.html)
 
 ## Contact
-For questions or support, please contact us at [ruichenn98@gmail.com].
-
-
+For questions or support, please contact us at [stonechen1995@gmail.com, lucas595@tamu.edu, ruichenn98@gmail.com].
