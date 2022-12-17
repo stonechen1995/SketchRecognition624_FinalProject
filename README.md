@@ -22,4 +22,14 @@ And a folder called `new_image` will be created at the same directory. The newly
 
 To train ResNet-152 model by the new image dataset, following the steps:
 1. Upload the `new_image` folder to your root directory of Google Drive
-2. Go to the project directory and run ```python ResNet-152.py```
+2. Go to the project directory and run ```python resnet_152.py```
+
+## Resources
+- [OpenCV Tutorial](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html)
+- [Pytorch Tutorial](https://pytorch.org/tutorials/)
+- [Scikit-learn Tutorial](https://scikit-learn.org/stable/tutorial/index.html)
+
+## Contact
+For questions or support, please contact us at [ruichenn98@gmail.com].
+
+
